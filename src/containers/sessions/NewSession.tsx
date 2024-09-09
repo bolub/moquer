@@ -16,6 +16,8 @@ import { Textarea } from "@/components/ui/textarea";
 
 import React, { useState } from "react";
 import { DatasetSetting } from "./DatasetSetting";
+import { createSession } from "@/server/session";
+import { toast } from "sonner";
 
 export type DatasetSettingType = {
   id: string;
@@ -30,17 +32,31 @@ export const NewSession = () => {
   const [selectedDatasetSetting, setSelectedDatasetSetting] =
     useState<DatasetSettingType>([]);
 
-  const onCreateSession = () => {
-    console.log({
+  const [open, setOpen] = useState(false);
+
+  const onCreateSession = async () => {
+    const res = await createSession({
       title,
       description,
-      selectedDataset,
+      dataset: selectedDataset,
       selectedDatasetSetting,
     });
+
+    if (!res.toString()) {
+      toast.error("Failed to create session");
+      return;
+    }
+
+    setOpen(false);
+    toast.success("Session created successfully");
+    setTitle("");
+    setDescription("");
+    setSelectedDataset("");
+    setSelectedDatasetSetting([]);
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>New Session</Button>
       </DialogTrigger>
