@@ -15,40 +15,24 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 import React, { useState } from "react";
-import { DatasetSetting } from "./DatasetSetting";
 import { createSession } from "@/server/session";
 import { toast } from "sonner";
 import { AVAILABLE_DATASETS } from "@/lib/constants";
-
-export type DatasetSettingType = {
-  id: string;
-  value: string;
-}[];
-
-export type DatasetType = {
-  id: string;
-  label: string;
-};
+import { EmailDatasetSetting } from "./EmailDatasetSetting";
+import { Dataset, DatasetSetting } from "@/server/db";
 
 export const NewSession = () => {
+  const [open, setOpen] = useState(false);
+
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-
-  const [selectedDataset, setSelectedDataset] = useState<DatasetType>({
-    id: "",
-    label: "",
-  });
-  const [selectedDatasetSetting, setSelectedDatasetSetting] =
-    useState<DatasetSettingType>([]);
-
-  const [open, setOpen] = useState(false);
+  const [selectedDatasets, setSelectedDatasets] = useState<Dataset[]>([]);
 
   const onCreateSession = async () => {
     const res = await createSession({
       title,
       description,
-      dataset: selectedDataset,
-      selectedDatasetSetting,
+      datasets: selectedDatasets,
     });
 
     if (!res.toString()) {
@@ -60,11 +44,7 @@ export const NewSession = () => {
     toast.success("Session created successfully");
     setTitle("");
     setDescription("");
-    setSelectedDataset({
-      id: "",
-      label: "",
-    });
-    setSelectedDatasetSetting([]);
+    setSelectedDatasets([]);
   };
 
   return (
@@ -108,13 +88,30 @@ export const NewSession = () => {
 
             <div className="flex gap-2 flex-wrap">
               {AVAILABLE_DATASETS.map((dataset) => {
-                const isSelected = selectedDataset.id === dataset;
+                const isNewSelected = selectedDatasets.some(
+                  (ds) => ds.id === dataset
+                );
 
-                const onSelectDataset = () => {
-                  setSelectedDataset({
-                    id: dataset,
-                    label: "",
-                  });
+                const onSelectNewDataset = () => {
+                  const copiedSelectedDatasets = [...selectedDatasets];
+
+                  const existingDatasetIndex = copiedSelectedDatasets.findIndex(
+                    (d) => d.id === dataset
+                  );
+
+                  if (existingDatasetIndex === -1) {
+                    // Dataset doesn't exist, add it
+                    copiedSelectedDatasets.push({
+                      id: dataset,
+                      label: "",
+                      settings: [],
+                    });
+                  } else {
+                    // Dataset exists, remove it
+                    copiedSelectedDatasets.splice(existingDatasetIndex, 1);
+                  }
+
+                  setSelectedDatasets(copiedSelectedDatasets);
                 };
 
                 return (
@@ -122,8 +119,8 @@ export const NewSession = () => {
                     <div>
                       <Badge
                         className="cursor-pointer capitalize"
-                        variant={isSelected ? "default" : "outline"}
-                        onClick={onSelectDataset}
+                        variant={isNewSelected ? "default" : "outline"}
+                        onClick={onSelectNewDataset}
                       >
                         {dataset}
                       </Badge>
@@ -133,52 +130,103 @@ export const NewSession = () => {
               })}
             </div>
 
-            {selectedDataset.id ? (
-              <div className="flex flex-col w-full mt-5">
-                <Label className="text-xs" htmlFor="datasetLabel">
-                  <span className="capitalize">{selectedDataset.id}</span>{" "}
-                  dataset label
-                </Label>
-                <Input
-                  type="text"
-                  id="datasetLabel"
-                  placeholder="Enter dataset label"
-                  value={selectedDataset.label}
-                  onChange={(e) => {
-                    setSelectedDataset({
-                      ...selectedDataset,
-                      label: e.target.value,
-                    });
-                  }}
-                />
-              </div>
+            {/* Label */}
+            {selectedDatasets?.length > 0 ? (
+              <>
+                {selectedDatasets.map((dataset) => {
+                  return (
+                    <div key={dataset.id} className="flex flex-col w-full mt-5">
+                      <Label className="text-xs" htmlFor="datasetLabel">
+                        <span className="capitalize">{dataset.id}</span> dataset
+                        label
+                      </Label>
+
+                      <Input
+                        type="text"
+                        id="datasetLabel"
+                        placeholder="Enter dataset label"
+                        value={dataset.label}
+                        onChange={(e) => {
+                          const copiedSelectedDatasets = [...selectedDatasets];
+
+                          const existingDatasetIndex =
+                            copiedSelectedDatasets.findIndex(
+                              (d) => d.id === dataset.id
+                            );
+
+                          if (existingDatasetIndex === -1) {
+                            // Dataset doesn't exist, add it
+                            copiedSelectedDatasets.push({
+                              id: dataset.id,
+                              label: e.target.value,
+                              settings: [],
+                            });
+                          } else {
+                            copiedSelectedDatasets[existingDatasetIndex].label =
+                              e.target.value;
+                          }
+
+                          setSelectedDatasets(copiedSelectedDatasets);
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </>
             ) : null}
 
-            {selectedDataset.id === "email" ? (
-              <div className="grid w-full gap-1.5 mt-5">
-                <Label htmlFor="message" className="text-xs">
-                  <span className=" capitalize">{selectedDataset.id}</span>{" "}
-                  dataset settings
-                </Label>
+            {/* Settings */}
+            {selectedDatasets?.length > 0 ? (
+              <>
+                {selectedDatasets?.map((dataset) => {
+                  if (dataset.id !== "email") return null;
 
-                <DatasetSetting
-                  selectedDatasetSetting={selectedDatasetSetting}
-                  setSelectedDatasetSetting={setSelectedDatasetSetting}
-                />
-              </div>
+                  const selectedDatasetSetting = dataset.settings;
+                  const setSelectedDatasetSetting = (
+                    settings: DatasetSetting[]
+                  ) => {
+                    const copiedSelectedDatasets = [...selectedDatasets];
+                    const existingDatasetIndex =
+                      copiedSelectedDatasets.findIndex(
+                        (d) => d.id === dataset.id
+                      );
+
+                    if (existingDatasetIndex === -1) {
+                      // Dataset doesn't exist, add it
+                      copiedSelectedDatasets.push({
+                        id: dataset.id,
+                        label: dataset.label,
+                        settings: settings,
+                      });
+                    } else {
+                      copiedSelectedDatasets[existingDatasetIndex].settings =
+                        settings;
+                    }
+
+                    setSelectedDatasets(copiedSelectedDatasets);
+                  };
+                  return (
+                    <div key={dataset.id} className="grid w-full gap-1.5 mt-5">
+                      <Label htmlFor="message" className="text-xs">
+                        <span className=" capitalize">{dataset.id}</span>{" "}
+                        dataset settings
+                      </Label>
+
+                      <EmailDatasetSetting
+                        selectedDatasetSetting={selectedDatasetSetting}
+                        setSelectedDatasetSetting={setSelectedDatasetSetting}
+                      />
+                    </div>
+                  );
+                })}
+              </>
             ) : null}
           </div>
 
           <Button
             type="button"
             onClick={onCreateSession}
-            disabled={
-              !title ||
-              !description ||
-              !selectedDataset ||
-              !selectedDatasetSetting ||
-              !selectedDataset.label
-            }
+            disabled={!title || !description || selectedDatasets.length === 0}
             className="mt-4"
           >
             Create session

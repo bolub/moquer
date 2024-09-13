@@ -20,6 +20,9 @@ dependencies:
   '@radix-ui/react-slot':
     specifier: ^1.1.0
     version: 1.1.0(@types/react@18.3.5)(react@18.3.1)
+  '@types/lodash.groupby':
+    specifier: ^4.6.9
+    version: 4.6.9
   class-variance-authority:
     specifier: ^0.7.0
     version: 0.7.0
@@ -35,6 +38,9 @@ dependencies:
   dexie-react-hooks:
     specifier: ^1.1.7
     version: 1.1.7(@types/react@18.3.5)(dexie@4.0.8)(react@18.3.1)
+  lodash.groupby:
+    specifier: ^4.6.0
+    version: 4.6.0
   lucide-react:
     specifier: ^0.439.0
     version: 0.439.0(react@18.3.1)
@@ -874,6 +880,16 @@ packages:
   /@types/json5@0.0.29:
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
     dev: true
+
+  /@types/lodash.groupby@4.6.9:
+    resolution: {integrity: sha512-z2xtCX2ko7GrqORnnYea4+ksT7jZNAvaOcLd6mP9M7J09RHvJs06W8BGdQQAX8ARef09VQLdeRilSOcfHlDQJQ==}
+    dependencies:
+      '@types/lodash': 4.17.7
+    dev: false
+
+  /@types/lodash@4.17.7:
+    resolution: {integrity: sha512-8wTvZawATi/lsmNu10/j2hk1KEP0IvjubqPE3cu1Xz7xfXXt5oCq3SNUz4fMIP4XGF9Ky+Ue2tBA3hcS7LSBlA==}
+    dev: false
 
   /@types/node@20.16.5:
     resolution: {integrity: sha512-VwYCweNo3ERajwy0IUlqqcyZ8/A7Zwa9ZP3MnENWcB11AejO+tLy3pu850goUW2FC/IJMdZUfKpX/yxL1gymCA==}
@@ -2552,6 +2568,10 @@ packages:
 
   /lodash.debounce@4.0.8:
     resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
+    dev: false
+
+  /lodash.groupby@4.6.0:
+    resolution: {integrity: sha512-5dcWxm23+VAoz+awKmBaiBvzox8+RqMgFhi7UvX9DHZr2HdxHXM/Wrf8cfKpsW37RNrvtPn6hSwNqurSILbmJw==}
     dev: false
 
   /lodash.merge@4.6.2:

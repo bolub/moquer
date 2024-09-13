@@ -45,7 +45,7 @@ export const SessionsPage = () => {
         <NewSession />
       </div>
 
-      <div className="mt-8">
+      <div className="mt-8 mb-32">
         <SessionsPageInner />
       </div>
     </main>

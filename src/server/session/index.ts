@@ -1,18 +1,13 @@
-import {
-  DatasetSettingType,
-  DatasetType,
-} from "@/containers/sessions/NewSession";
-import { db } from "../db";
+import { Dataset, DatasetSetting, db } from "../db";
 import { faker } from "@faker-js/faker";
 
 type CreateSessionParams = {
   title: string;
   description: string;
-  dataset: DatasetType;
-  selectedDatasetSetting: DatasetSettingType;
+  datasets: Dataset[];
 };
 
-const generateEmailData = ({ data }: { data: DatasetSettingType }) => {
+const generateEmailData = ({ data }: { data: DatasetSetting[] }) => {
   let localUsername = faker.person.firstName();
   let subaddress = faker.string.alpha(3);
   let domain = faker.internet.domainName();
@@ -42,36 +37,38 @@ const generateFullnameData = () => {
 
 export const createSessionData = async ({
   sessionId,
-  dataset,
-  selectedDatasetSetting,
+  datasets,
+  version,
 }: {
   sessionId: number;
-  dataset: DatasetType;
-  selectedDatasetSetting: DatasetSettingType;
+  datasets: Dataset[];
+  version: number;
 }) => {
-  let datasetInfo = "";
+  datasets.forEach(async (dataset) => {
+    let datasetInfo = "";
 
-  if (dataset.id === "email") {
-    datasetInfo = generateEmailData({ data: selectedDatasetSetting });
-  }
+    if (dataset.id === "email") {
+      datasetInfo = generateEmailData({ data: dataset.settings });
+    }
 
-  if (dataset.id === "fullname") {
-    datasetInfo = generateFullnameData();
-  }
+    if (dataset.id === "fullname") {
+      datasetInfo = generateFullnameData();
+    }
 
-  await db.sessionData.add({
-    sessionId,
-    data: datasetInfo,
-    label: dataset.label,
-    createdAt: new Date(),
+    await db.sessionData.add({
+      sessionId,
+      data: datasetInfo,
+      dataset,
+      createdAt: new Date(),
+      version,
+    });
   });
 };
 
 export const createSession = async ({
   title,
   description,
-  dataset,
-  selectedDatasetSetting,
+  datasets,
 }: CreateSessionParams) => {
   const response = await db.transaction(
     "rw",
@@ -81,18 +78,16 @@ export const createSession = async ({
       const session = await db.sessions.add({
         title,
         description,
-        dataset,
+        datasets,
         createdAt: new Date(),
-        datasetSetting: selectedDatasetSetting,
       });
 
       // Sessions are top level. A session can have multiple mock data, not just one
       // So after creating a session, we need to add the first session data to it to form a relationship
-
       await createSessionData({
         sessionId: Number(session.toString()),
-        dataset,
-        selectedDatasetSetting,
+        datasets,
+        version: 1,
       });
 
       return session;

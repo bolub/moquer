@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dispatch, useState } from "react";
-import { DatasetSettingType } from "./NewSession";
+import { DatasetSetting } from "@/server/db";
+import { useState } from "react";
 
 const idToLabel = {
   local_username: {
@@ -51,12 +51,12 @@ const BluePrint = ({
   );
 };
 
-export const DatasetSetting = ({
+export const EmailDatasetSetting = ({
   selectedDatasetSetting,
   setSelectedDatasetSetting,
 }: {
-  selectedDatasetSetting: DatasetSettingType;
-  setSelectedDatasetSetting: Dispatch<React.SetStateAction<DatasetSettingType>>;
+  selectedDatasetSetting: DatasetSetting[];
+  setSelectedDatasetSetting: (settings: DatasetSetting[]) => void;
 }) => {
   const onSelect = (id: keyof typeof idToLabel) => {
     const copiedIds = [...selectedDatasetSetting];

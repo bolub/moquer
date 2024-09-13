@@ -29,6 +29,8 @@ import {
 } from "@radix-ui/react-icons";
 import { format } from "date-fns";
 import { useCopyToClipboard } from "usehooks-ts";
+import groupBy from "lodash.groupby";
+import { Badge } from "@/components/ui/badge";
 
 export const SessionCard = ({ session }: { session: Session }) => {
   const sessionData = useLiveQuery(() => getSessionData(session.id)) ?? [];
@@ -50,7 +52,10 @@ export const SessionCard = ({ session }: { session: Session }) => {
     toast.success("Session data deleted successfully");
   };
 
-  const lastSessionDataIndex = sessionData.length - 1;
+  const groupedSessionDataByVersion = groupBy(sessionData, "version");
+  const versions = Object.keys(groupedSessionDataByVersion);
+
+  const lstVersionItem = Number(versions[versions.length - 1]);
 
   return (
     <Card key={session.id}>
@@ -84,29 +89,41 @@ export const SessionCard = ({ session }: { session: Session }) => {
       </CardHeader>
 
       <CardContent className="bg-gray-100 pt-5 pb-4">
-        <div className="flex flex-col gap-2">
-          {sessionData?.map((d) => {
+        <div className="flex flex-col gap-4">
+          {versions.map((version) => {
+            const sessionDataForVersion = groupedSessionDataByVersion[version];
+
             return (
-              <div key={d.id} className="text-sm">
-                <h3 className="font-semibold text-sm text-gray-600 mb-2">
-                  {d.label}
-                </h3>
-                <div className="flex gap-2 items-center">
-                  {d.data}
+              <div key={version} className="border-b pb-5">
+                <Badge className="mb-2">Version {version}</Badge>
 
-                  <button onClick={() => handleCopy(d.data)}>
-                    <CopyIcon className="ml-2" />
-                  </button>
+                <div className="flex flex-col gap-4">
+                  {sessionDataForVersion?.map((d) => {
+                    return (
+                      <div key={d.id} className="text-sm">
+                        <h3 className="font-semibold text-sm text-gray-600 mb-2">
+                          {d.dataset.label}
+                        </h3>
+                        <div className="flex gap-2 items-center">
+                          {d.data}
 
-                  <button onClick={() => onDeleteSessionData(d.id)}>
-                    <TrashIcon className="ml-2 text-red-500" />
-                  </button>
+                          <button onClick={() => handleCopy(d.data)}>
+                            <CopyIcon className="ml-2" />
+                          </button>
+
+                          <button onClick={() => onDeleteSessionData(d.id)}>
+                            <TrashIcon className="ml-2 text-red-500" />
+                          </button>
+                        </div>
+
+                        <p className="text-gray-400 text-xs mt-1">
+                          {format(d.createdAt, "qo MMM, yyyy")} at{" "}
+                          {format(d.createdAt, "HH:mm")}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
-
-                <p className="text-gray-400 text-xs mt-1">
-                  {format(d.createdAt, "qo MMM, yyyy")} at{" "}
-                  {format(d.createdAt, "HH:mm")}
-                </p>
               </div>
             );
           })}
@@ -118,11 +135,8 @@ export const SessionCard = ({ session }: { session: Session }) => {
           onClick={async () => {
             await createSessionData({
               sessionId: session.id,
-              dataset: {
-                id: session.dataset.id,
-                label: `Data ${lastSessionDataIndex + 2}`,
-              },
-              selectedDatasetSetting: session.datasetSetting,
+              datasets: session.datasets,
+              version: lstVersionItem + 1,
             });
           }}
         >
