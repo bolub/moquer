@@ -22,15 +22,30 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  CopyIcon,
   DotsHorizontalIcon,
   Pencil2Icon,
   TrashIcon,
 } from "@radix-ui/react-icons";
 import { format } from "date-fns";
+import { useCopyToClipboard } from "usehooks-ts";
 
 export const SessionCard = ({ session }: { session: Session }) => {
   const sessionData = useLiveQuery(() => getSessionData(session.id)) ?? [];
   const hasSessionData = sessionData?.length > 0;
+
+  const [, copy] = useCopyToClipboard();
+
+  const handleCopy = (text: string) => {
+    copy(text)
+      .then(() => {
+        toast.success("Copied to clipboard");
+      })
+      .catch((error) => {
+        console.error("Failed to copy", error);
+        toast.error("Failed to copy");
+      });
+  };
 
   return (
     <Card key={session.id}>
@@ -76,6 +91,14 @@ export const SessionCard = ({ session }: { session: Session }) => {
               <div key={d.id} className="text-sm">
                 <div className="flex gap-2 items-center">
                   {d.data}
+
+                  <button
+                    onClick={() => {
+                      handleCopy(d.data);
+                    }}
+                  >
+                    <CopyIcon className="ml-2" />
+                  </button>
 
                   <button
                     onClick={async () => {
