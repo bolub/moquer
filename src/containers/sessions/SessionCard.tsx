@@ -32,8 +32,6 @@ import { useCopyToClipboard } from "usehooks-ts";
 
 export const SessionCard = ({ session }: { session: Session }) => {
   const sessionData = useLiveQuery(() => getSessionData(session.id)) ?? [];
-  const hasSessionData = sessionData?.length > 0;
-
   const [, copy] = useCopyToClipboard();
 
   const handleCopy = (text: string) => {
@@ -46,6 +44,13 @@ export const SessionCard = ({ session }: { session: Session }) => {
         toast.error("Failed to copy");
       });
   };
+
+  const onDeleteSessionData = async (id: number) => {
+    await deleteSessionData(id);
+    toast.success("Session data deleted successfully");
+  };
+
+  const lastSessionDataIndex = sessionData.length - 1;
 
   return (
     <Card key={session.id}>
@@ -79,33 +84,21 @@ export const SessionCard = ({ session }: { session: Session }) => {
       </CardHeader>
 
       <CardContent className="bg-gray-100 pt-5 pb-4">
-        {hasSessionData ? (
-          <h3 className="font-semibold text-sm text-gray-600 mb-2">
-            Session data
-          </h3>
-        ) : null}
-
         <div className="flex flex-col gap-2">
           {sessionData?.map((d) => {
             return (
               <div key={d.id} className="text-sm">
+                <h3 className="font-semibold text-sm text-gray-600 mb-2">
+                  {d.label}
+                </h3>
                 <div className="flex gap-2 items-center">
                   {d.data}
 
-                  <button
-                    onClick={() => {
-                      handleCopy(d.data);
-                    }}
-                  >
+                  <button onClick={() => handleCopy(d.data)}>
                     <CopyIcon className="ml-2" />
                   </button>
 
-                  <button
-                    onClick={async () => {
-                      await deleteSessionData(d.id);
-                      toast.success("Session data deleted successfully");
-                    }}
-                  >
+                  <button onClick={() => onDeleteSessionData(d.id)}>
                     <TrashIcon className="ml-2 text-red-500" />
                   </button>
                 </div>
@@ -125,7 +118,10 @@ export const SessionCard = ({ session }: { session: Session }) => {
           onClick={async () => {
             await createSessionData({
               sessionId: session.id,
-              dataset: "email",
+              dataset: {
+                id: session.dataset.id,
+                label: `Data ${lastSessionDataIndex + 2}`,
+              },
               selectedDatasetSetting: session.datasetSetting,
             });
           }}

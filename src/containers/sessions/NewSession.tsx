@@ -24,11 +24,20 @@ export type DatasetSettingType = {
   value: string;
 }[];
 
+export type DatasetType = {
+  id: string;
+  label: string;
+};
+
 export const NewSession = () => {
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
 
   const [selectedDataset, setSelectedDataset] = useState<string>("");
+  const [newSelectedDataset, setNewSelectedDataset] = useState<DatasetType>({
+    id: "",
+    label: "",
+  });
   const [selectedDatasetSetting, setSelectedDatasetSetting] =
     useState<DatasetSettingType>([]);
 
@@ -38,7 +47,7 @@ export const NewSession = () => {
     const res = await createSession({
       title,
       description,
-      dataset: selectedDataset,
+      dataset: newSelectedDataset,
       selectedDatasetSetting,
     });
 
@@ -91,15 +100,40 @@ export const NewSession = () => {
             />
           </div>
 
-          <div className="grid w-full gap-1.5">
+          <div className="grid w-full gap-1.5 border p-4 rounded-md">
             <Label htmlFor="message">Dataset</Label>
-            <div className="cursor-pointer">
+            <div>
               <Badge
+                className="cursor-pointer"
                 variant={selectedDataset === "email" ? "default" : "outline"}
-                onClick={() => setSelectedDataset("email")}
+                onClick={() => {
+                  setSelectedDataset("email");
+                  setNewSelectedDataset({
+                    id: "email",
+                    label: "",
+                  });
+                }}
               >
                 Email
               </Badge>
+            </div>
+
+            <div className="flex flex-col w-full mt-5">
+              <Label className="text-xs" htmlFor="datasetLabel">
+                Dataset label
+              </Label>
+              <Input
+                type="text"
+                id="datasetLabel"
+                placeholder="Enter dataset label"
+                value={newSelectedDataset.label}
+                onChange={(e) => {
+                  setNewSelectedDataset({
+                    ...newSelectedDataset,
+                    label: e.target.value,
+                  });
+                }}
+              />
             </div>
           </div>
 
@@ -124,7 +158,8 @@ export const NewSession = () => {
               !title ||
               !description ||
               !selectedDataset ||
-              !selectedDatasetSetting
+              !selectedDatasetSetting ||
+              !newSelectedDataset.label
             }
             className="mt-4"
           >

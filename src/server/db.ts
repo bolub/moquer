@@ -4,7 +4,9 @@ export type Session = {
   id: number;
   title: string;
   description: string;
-  dataset: string;
+  dataset: {
+    id: string;
+  };
   datasetSetting: {
     id: string;
     value: string;
@@ -14,6 +16,7 @@ export type Session = {
 
 export type SessionData = {
   id: number;
+  label: string;
   sessionId: number;
   data: string;
   createdAt: Date;

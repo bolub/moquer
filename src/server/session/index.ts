@@ -1,11 +1,14 @@
-import { DatasetSettingType } from "@/containers/sessions/NewSession";
+import {
+  DatasetSettingType,
+  DatasetType,
+} from "@/containers/sessions/NewSession";
 import { db } from "../db";
 import { faker } from "@faker-js/faker";
 
 type CreateSessionParams = {
   title: string;
   description: string;
-  dataset: string;
+  dataset: DatasetType;
   selectedDatasetSetting: DatasetSettingType;
 };
 
@@ -37,18 +40,19 @@ export const createSessionData = async ({
   selectedDatasetSetting,
 }: {
   sessionId: number;
-  dataset: string;
+  dataset: DatasetType;
   selectedDatasetSetting: DatasetSettingType;
 }) => {
   let datasetInfo = "";
 
-  if (dataset === "email") {
+  if (dataset.id === "email") {
     datasetInfo = generateEmailData({ data: selectedDatasetSetting });
   }
 
   await db.sessionData.add({
     sessionId,
     data: datasetInfo,
+    label: dataset.label,
     createdAt: new Date(),
   });
 };
