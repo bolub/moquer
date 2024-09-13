@@ -34,6 +34,12 @@ const generateEmailData = ({ data }: { data: DatasetSettingType }) => {
   return `${localUsername}+${subaddress}@${domain}`;
 };
 
+const generateFullnameData = () => {
+  const fullname = faker.person.fullName();
+
+  return fullname;
+};
+
 export const createSessionData = async ({
   sessionId,
   dataset,
@@ -47,6 +53,10 @@ export const createSessionData = async ({
 
   if (dataset.id === "email") {
     datasetInfo = generateEmailData({ data: selectedDatasetSetting });
+  }
+
+  if (dataset.id === "fullname") {
+    datasetInfo = generateFullnameData();
   }
 
   await db.sessionData.add({

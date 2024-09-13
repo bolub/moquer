@@ -37,8 +37,8 @@ const BluePrint = ({
         id={id}
         className={
           isActive
-            ? "cursor-pointer bg-black text-white border rounded px-1"
-            : "cursor-pointer hover:bg-gray-100 border rounded px-1"
+            ? "cursor-pointer bg-black text-white border rounded px-1 text-sm"
+            : "cursor-pointer hover:bg-gray-100 border rounded px-1 text-sm"
         }
         onClick={() => {
           setIsActive(!isActive);

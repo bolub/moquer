@@ -18,6 +18,7 @@ import React, { useState } from "react";
 import { DatasetSetting } from "./DatasetSetting";
 import { createSession } from "@/server/session";
 import { toast } from "sonner";
+import { AVAILABLE_DATASETS } from "@/lib/constants";
 
 export type DatasetSettingType = {
   id: string;
@@ -33,8 +34,7 @@ export const NewSession = () => {
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
 
-  const [selectedDataset, setSelectedDataset] = useState<string>("");
-  const [newSelectedDataset, setNewSelectedDataset] = useState<DatasetType>({
+  const [selectedDataset, setSelectedDataset] = useState<DatasetType>({
     id: "",
     label: "",
   });
@@ -47,7 +47,7 @@ export const NewSession = () => {
     const res = await createSession({
       title,
       description,
-      dataset: newSelectedDataset,
+      dataset: selectedDataset,
       selectedDatasetSetting,
     });
 
@@ -60,7 +60,10 @@ export const NewSession = () => {
     toast.success("Session created successfully");
     setTitle("");
     setDescription("");
-    setSelectedDataset("");
+    setSelectedDataset({
+      id: "",
+      label: "",
+    });
     setSelectedDatasetSetting([]);
   };
 
@@ -102,54 +105,69 @@ export const NewSession = () => {
 
           <div className="grid w-full gap-1.5 border p-4 rounded-md">
             <Label htmlFor="message">Dataset</Label>
-            <div>
-              <Badge
-                className="cursor-pointer"
-                variant={selectedDataset === "email" ? "default" : "outline"}
-                onClick={() => {
-                  setSelectedDataset("email");
-                  setNewSelectedDataset({
-                    id: "email",
+
+            <div className="flex gap-2 flex-wrap">
+              {AVAILABLE_DATASETS.map((dataset) => {
+                const isSelected = selectedDataset.id === dataset;
+
+                const onSelectDataset = () => {
+                  setSelectedDataset({
+                    id: dataset,
                     label: "",
                   });
-                }}
-              >
-                Email
-              </Badge>
+                };
+
+                return (
+                  <div key={dataset}>
+                    <div>
+                      <Badge
+                        className="cursor-pointer capitalize"
+                        variant={isSelected ? "default" : "outline"}
+                        onClick={onSelectDataset}
+                      >
+                        {dataset}
+                      </Badge>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
-            <div className="flex flex-col w-full mt-5">
-              <Label className="text-xs" htmlFor="datasetLabel">
-                Dataset label
-              </Label>
-              <Input
-                type="text"
-                id="datasetLabel"
-                placeholder="Enter dataset label"
-                value={newSelectedDataset.label}
-                onChange={(e) => {
-                  setNewSelectedDataset({
-                    ...newSelectedDataset,
-                    label: e.target.value,
-                  });
-                }}
-              />
-            </div>
+            {selectedDataset.id ? (
+              <div className="flex flex-col w-full mt-5">
+                <Label className="text-xs" htmlFor="datasetLabel">
+                  <span className="capitalize">{selectedDataset.id}</span>{" "}
+                  dataset label
+                </Label>
+                <Input
+                  type="text"
+                  id="datasetLabel"
+                  placeholder="Enter dataset label"
+                  value={selectedDataset.label}
+                  onChange={(e) => {
+                    setSelectedDataset({
+                      ...selectedDataset,
+                      label: e.target.value,
+                    });
+                  }}
+                />
+              </div>
+            ) : null}
+
+            {selectedDataset.id === "email" ? (
+              <div className="grid w-full gap-1.5 mt-5">
+                <Label htmlFor="message" className="text-xs">
+                  <span className=" capitalize">{selectedDataset.id}</span>{" "}
+                  dataset settings
+                </Label>
+
+                <DatasetSetting
+                  selectedDatasetSetting={selectedDatasetSetting}
+                  setSelectedDatasetSetting={setSelectedDatasetSetting}
+                />
+              </div>
+            ) : null}
           </div>
-
-          {selectedDataset ? (
-            <div className="grid w-full gap-1.5">
-              <Label htmlFor="message">
-                <span className=" capitalize">{selectedDataset}</span> dataset
-                settings
-              </Label>
-
-              <DatasetSetting
-                selectedDatasetSetting={selectedDatasetSetting}
-                setSelectedDatasetSetting={setSelectedDatasetSetting}
-              />
-            </div>
-          ) : null}
 
           <Button
             type="button"
@@ -159,7 +177,7 @@ export const NewSession = () => {
               !description ||
               !selectedDataset ||
               !selectedDatasetSetting ||
-              !newSelectedDataset.label
+              !selectedDataset.label
             }
             className="mt-4"
           >
